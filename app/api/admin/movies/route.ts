@@ -17,12 +17,22 @@ async function getAdminUser() {
   const devRole = cookieStore.get("brutal_user_role")?.value;
   const devEmail = cookieStore.get("brutal_user_email")?.value;
 
-  // Allow any authenticated user in the admin console
-  if (devSession === "authenticated" && devEmail) {
+  if (devSession !== "authenticated" || !devEmail) {
+    return null;
+  }
+
+  const cleanEmail = devEmail.toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+  const isAdmin =
+    devRole === "admin" ||
+    cleanEmail === "rajibjugi02@gmail.com" ||
+    cleanEmail === adminEmail;
+
+  if (isAdmin) {
     return {
       authenticated: true,
       email: devEmail,
-      role: devRole || "admin",
+      role: "admin",
     };
   }
 

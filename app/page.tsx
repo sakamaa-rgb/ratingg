@@ -21,6 +21,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/login");
   }
 
+  const userRole = cookieStore.get("brutal_user_role")?.value || "user";
+  const userEmail = cookieStore.get("brutal_user_email")?.value?.toLowerCase() || "";
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+  const isAdmin =
+    userRole === "admin" ||
+    userEmail === "rajibjugi02@gmail.com" ||
+    userEmail === adminEmail;
+
   const params = await searchParams;
   const category = params?.category;
   const query = params?.q;
@@ -195,18 +203,28 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         ) : (
           /* DEFAULT VIEW: NETFLIX-STYLE SLIDER ROWS FOR REAL MOVIES */
           allMovies.length === 0 ? (
-            <div className="p-12 border-4 border-black bg-white text-center shadow-brutal space-y-4">
+            <div className="p-10 sm:p-14 border-4 border-black bg-white text-center shadow-brutal space-y-3">
               <Film className="w-12 h-12 mx-auto mb-2 text-neutral-400" />
-              <h3 className="text-xl font-black uppercase">BELUM ADA FILM DI KATALOG</h3>
-              <p className="text-xs text-neutral-600 max-w-md mx-auto">
-                Semua film dummy telah dibersihkan. Anda dapat menambahkan film baru melalui Admin Console.
-              </p>
-              <Link
-                href="/admin/movies"
-                className="inline-block px-5 py-2.5 border-2 border-black bg-brutal-yellow font-black text-xs uppercase shadow-brutal-sm hover:bg-yellow-400"
-              >
-                + TAMBAHKAN FILM BARU
-              </Link>
+              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">BELUM ADA FILM DI KATALOG</h3>
+              {isAdmin ? (
+                <>
+                  <p className="text-xs text-neutral-600 max-w-md mx-auto">
+                    Katalog film saat ini kosong. Sebagai Administrator, Anda dapat menambahkan film baru melalui Admin Console.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/admin/movies"
+                      className="inline-block px-5 py-2.5 border-2 border-black bg-brutal-yellow font-black text-xs uppercase shadow-brutal-sm hover:bg-yellow-400 active:translate-x-[2px] active:translate-y-[2px]"
+                    >
+                      + TAMBAHKAN FILM BARU
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-neutral-500 max-w-md mx-auto font-sans font-medium">
+                  Saat ini belum ada film di katalog. Silakan tunggu kurator menambahkan film terbaru.
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-12">

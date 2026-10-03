@@ -19,12 +19,25 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 2. Protect admin routes: only authenticated users can access
+  // 2. Protect admin routes: STRICTLY ADMIN ONLY (Regular users redirected to home)
   if (isAdminPage) {
     if (!isAuthenticated) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirectedFrom", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    const userEmail = request.cookies.get("brutal_user_email")?.value?.toLowerCase() || "";
+    const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+    const isAdmin =
+      userRole === "admin" ||
+      userEmail === "rajibjugi02@gmail.com" ||
+      userEmail === adminEmail;
+
+    if (!isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
       return NextResponse.redirect(url);
     }
   }
