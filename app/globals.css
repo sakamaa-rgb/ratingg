@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-dark: #000000;
+  --accent-yellow: #FFE600;
+  --accent-red: #FF3333;
+  --accent-green: #00FF66;
+  --accent-blue: #2979FF;
+  --border-hard: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  max-width: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+/* Custom Neo-Brutalist Helpers */
+.brutal-border {
+  border: 2px solid #000000;
+}
+
+.brutal-border-thick {
+  border: 4px solid #000000;
+}
+
+.brutal-border-white {
+  border: 2px solid #FFFFFF;
+}
+
+.brutal-shadow {
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.brutal-shadow-lg {
+  box-shadow: 6px 6px 0px #000000;
+}
+
+.brutal-shadow-white {
+  box-shadow: 4px 4px 0px #FFFFFF;
+}
+
+.brutal-btn-active:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px #000000;
+}
+
+/* Custom scrollbar for brutalist look */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+  border-left: 2px solid #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #FFFFFF;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFE600;
+}
