@@ -22,9 +22,8 @@ async function getAdminUser() {
   }
 
   const cleanEmail = devEmail.toLowerCase().trim();
-  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
   const isAdmin =
-    devRole === "admin" ||
     cleanEmail === "rajibjugi02@gmail.com" ||
     cleanEmail === adminEmail;
 

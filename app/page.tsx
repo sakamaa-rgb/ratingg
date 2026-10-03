@@ -22,11 +22,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect("/login");
   }
 
-  const userRole = cookieStore.get("brutal_user_role")?.value || "user";
-  const userEmail = cookieStore.get("brutal_user_email")?.value?.toLowerCase() || "";
-  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+  const userEmail = cookieStore.get("brutal_user_email")?.value?.toLowerCase().trim() || "";
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
   const isAdmin =
-    userRole === "admin" ||
     userEmail === "rajibjugi02@gmail.com" ||
     userEmail === adminEmail;
 

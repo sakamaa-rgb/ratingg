@@ -8,10 +8,13 @@ export async function GET() {
   const devEmail = cookieStore.get("brutal_user_email")?.value || "";
 
   if (devSession === "authenticated" && devEmail) {
+    const cleanEmail = devEmail.toLowerCase().trim();
+    const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
+    const isStrictAdmin = cleanEmail === "rajibjugi02@gmail.com" || cleanEmail === adminEmail;
     return NextResponse.json({
       authenticated: true,
       email: devEmail,
-      role: devRole,
+      role: isStrictAdmin ? "admin" : "user",
     });
   }
 

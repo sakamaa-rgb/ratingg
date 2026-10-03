@@ -48,9 +48,11 @@ export default function Navbar() {
       const cachedEmail = localEmail || getCookie("brutal_user_email");
       const cachedRole = localRole || getCookie("brutal_user_role");
       if (cachedEmail) {
+        const clean = cachedEmail.toLowerCase().trim();
+        const isStrictAdmin = clean === "rajibjugi02@gmail.com" || clean === "adminflix123@gmail.com";
         setIsAuthenticated(true);
         setUserEmail(cachedEmail);
-        setUserRole(cachedRole || (cachedEmail.toLowerCase().includes("admin") ? "admin" : "user"));
+        setUserRole(isStrictAdmin ? "admin" : "user");
       }
 
       // 2. Authoritative server check via /api/auth/me

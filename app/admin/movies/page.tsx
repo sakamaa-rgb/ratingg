@@ -291,8 +291,8 @@ export default function AdminMoviesPage() {
 
   const openEditModal = (movie: AdminMovie) => {
     const isSuperAdmin =
-      currentAdminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
-      currentAdminEmail.toLowerCase().includes("admin");
+      currentAdminEmail.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
+      currentAdminEmail.toLowerCase().trim() === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
 
     const isOwner =
       isSuperAdmin ||
@@ -527,8 +527,8 @@ export default function AdminMoviesPage() {
   };
 
   const isSuperAdmin =
-    currentAdminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
-    currentAdminEmail.toLowerCase().includes("admin");
+    currentAdminEmail.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
+    currentAdminEmail.toLowerCase().trim() === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
 
   // Filter movies
   const myMovies = movies.filter(

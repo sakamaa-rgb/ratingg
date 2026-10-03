@@ -28,10 +28,9 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const userEmail = request.cookies.get("brutal_user_email")?.value?.toLowerCase() || "";
-    const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+    const userEmail = request.cookies.get("brutal_user_email")?.value?.toLowerCase().trim() || "";
+    const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
     const isAdmin =
-      userRole === "admin" ||
       userEmail === "rajibjugi02@gmail.com" ||
       userEmail === adminEmail;
 

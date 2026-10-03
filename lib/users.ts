@@ -91,10 +91,8 @@ export async function validateLogin(
 
       if (!dbErr && dbUser) {
         const isAdmin =
-          dbUser.email.toLowerCase().includes("admin") ||
           dbUser.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-          dbUser.email.toLowerCase().trim() === adminEmail ||
-          dbUser.role === "admin";
+          dbUser.email.toLowerCase().trim() === adminEmail;
 
         return {
           email: dbUser.email,
@@ -114,11 +112,10 @@ export async function validateLogin(
       });
 
       if (!error && data.user) {
-        const userEmail = data.user.email || cleanEmail;
+        const userEmail = (data.user.email || cleanEmail).toLowerCase().trim();
         const isAdmin =
-          userEmail.toLowerCase().includes("admin") ||
-          userEmail.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-          userEmail.toLowerCase().trim() === adminEmail;
+          userEmail === "rajibjugi02@gmail.com" ||
+          userEmail === adminEmail;
 
         return {
           email: userEmail,
@@ -135,16 +132,15 @@ export async function validateLogin(
   const users = getAllUsers();
   const localMatch = users.find(
     (u) =>
-      u.email.toLowerCase() === cleanEmail &&
+      u.email.toLowerCase().trim() === cleanEmail &&
       u.password === password
   );
 
   if (localMatch) {
+    const userEmail = localMatch.email.toLowerCase().trim();
     const isAdmin =
-      localMatch.email.toLowerCase().includes("admin") ||
-      localMatch.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-      localMatch.email.toLowerCase().trim() === adminEmail ||
-      localMatch.role === "admin";
+      userEmail === "rajibjugi02@gmail.com" ||
+      userEmail === adminEmail;
 
     return {
       ...localMatch,
