@@ -151,6 +151,15 @@ export default function AdminMoviesPage() {
 
   useEffect(() => {
     setMounted(true);
+    try {
+      const stored = localStorage.getItem("brutal_admin_movies");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMovies(parsed);
+        }
+      }
+    } catch {}
   }, []);
 
   // Lock body scroll whenever modal is open to prevent page bleed / scroll conflicts
@@ -204,13 +213,53 @@ export default function AdminMoviesPage() {
         if (authData.email) setCurrentAdminEmail(authData.email);
       }
 
+      // Check local storage first
+      let clientMovies: AdminMovie[] = [];
+      try {
+        const stored = localStorage.getItem("brutal_admin_movies");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) clientMovies = parsed;
+        }
+      } catch {}
+
       const res = await fetch("/api/admin/movies");
       if (res.ok) {
         const data = await res.json();
-        setMovies(data.movies || []);
+        const serverMovies: AdminMovie[] = data.movies || [];
+
+        // Merge server and client movies so nothing ever gets wiped
+        const merged = [...serverMovies];
+        for (const cm of clientMovies) {
+          if (!merged.some((m) => m.id === cm.id)) {
+            merged.push(cm);
+          }
+        }
+
+        setMovies(merged);
+        try {
+          localStorage.setItem("brutal_admin_movies", JSON.stringify(merged));
+        } catch {}
+
+        // If client has movies that server is missing (e.g. fresh lambda reboot), rehydrate server
+        const missingOnServer = clientMovies.filter(
+          (cm) => !serverMovies.some((sm) => sm.id === cm.id)
+        );
+        if (missingOnServer.length > 0) {
+          missingOnServer.forEach((m) => {
+            fetch("/api/admin/movies", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(m),
+            }).catch(() => {});
+          });
+        }
+
         if (data.dbStatus) {
           setDbStatus(data.dbStatus);
         }
+      } else if (clientMovies.length > 0) {
+        setMovies(clientMovies);
       }
     } catch (err) {
       showToast("Error loading catalog data.", "error");
@@ -427,7 +476,13 @@ export default function AdminMoviesPage() {
           showToast(`BERHASIL MENAMBAHKAN "${formData.title}" KE KATALOG`);
           setIsModalOpen(false);
           if (data.movie) {
-            setMovies((prev) => [data.movie, ...prev.filter((m) => m.id !== data.movie.id)]);
+            setMovies((prev) => {
+              const updated = [data.movie, ...prev.filter((m) => m.id !== data.movie.id)];
+              try {
+                localStorage.setItem("brutal_admin_movies", JSON.stringify(updated));
+              } catch {}
+              return updated;
+            });
           }
           fetchSessionAndMovies();
         } else {
@@ -452,7 +507,13 @@ export default function AdminMoviesPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast(`BERHASIL MENGHAPUS "${movieToDelete.title}"`);
-        setMovies((prev) => prev.filter((m) => m.id !== movieToDelete.id));
+        setMovies((prev) => {
+          const updated = prev.filter((m) => m.id !== movieToDelete.id);
+          try {
+            localStorage.setItem("brutal_admin_movies", JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
         setMovieToDelete(null);
         fetchSessionAndMovies();
       } else {
