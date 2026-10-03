@@ -198,6 +198,7 @@ export async function getAdminMovieById(id: number | string): Promise<AdminMovie
 
 export async function createAdminMovie(
   data: {
+    id?: number;
     title: string;
     tagline?: string;
     overview: string;
@@ -216,7 +217,7 @@ export async function createAdminMovie(
   const cleanVideo = extractYoutubeId(data.youtube_video_id);
 
   const newMovie: AdminMovie = {
-    id: Date.now() + Math.floor(Math.random() * 1000),
+    id: data.id ? Number(data.id) : Date.now() + Math.floor(Math.random() * 1000),
     title: data.title.trim(),
     tagline: data.tagline?.trim() || "",
     overview: data.overview.trim(),
@@ -245,7 +246,7 @@ export async function createAdminMovie(
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
-      const { error: insertError } = await supabase.from("movies").insert([
+      const { error: insertError } = await supabase.from("movies").upsert([
         {
           id: newMovie.id,
           title: newMovie.title,
@@ -266,10 +267,10 @@ export async function createAdminMovie(
       ]);
 
       if (insertError) {
-        console.warn("Supabase movie insert notice:", insertError.message);
+        console.warn("Supabase movie upsert notice:", insertError.message);
       }
     } catch (err: any) {
-      console.warn("Supabase movie insert exception:", err?.message || err);
+      console.warn("Supabase movie upsert exception:", err?.message || err);
     }
   }
 

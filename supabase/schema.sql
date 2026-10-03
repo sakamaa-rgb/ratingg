@@ -43,34 +43,15 @@ CREATE TABLE IF NOT EXISTS public.users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 4. ENABLE ROW LEVEL SECURITY & OPEN PERMISSIONS
-ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read reviews" ON public.reviews;
-DROP POLICY IF EXISTS "Allow public insert reviews" ON public.reviews;
-DROP POLICY IF EXISTS "Allow public update reviews" ON public.reviews;
-DROP POLICY IF EXISTS "Allow public delete reviews" ON public.reviews;
-CREATE POLICY "Allow public read reviews" ON public.reviews FOR SELECT USING (true);
-CREATE POLICY "Allow public insert reviews" ON public.reviews FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update reviews" ON public.reviews FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete reviews" ON public.reviews FOR DELETE USING (true);
+-- 4. NON-RESTRICTIVE ACCESS (Direct Cloud Sync for Web & Mobile)
+ALTER TABLE public.reviews DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.movies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 
-ALTER TABLE public.movies ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read movies" ON public.movies;
-DROP POLICY IF EXISTS "Allow public insert movies" ON public.movies;
-DROP POLICY IF EXISTS "Allow public update movies" ON public.movies;
-DROP POLICY IF EXISTS "Allow public delete movies" ON public.movies;
-CREATE POLICY "Allow public read movies" ON public.movies FOR SELECT USING (true);
-CREATE POLICY "Allow public insert movies" ON public.movies FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update movies" ON public.movies FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete movies" ON public.movies FOR DELETE USING (true);
-
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read users" ON public.users;
-DROP POLICY IF EXISTS "Allow public insert users" ON public.users;
-DROP POLICY IF EXISTS "Allow public update users" ON public.users;
-CREATE POLICY "Allow public read users" ON public.users FOR SELECT USING (true);
-CREATE POLICY "Allow public insert users" ON public.users FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update users" ON public.users FOR UPDATE USING (true);
+GRANT ALL ON TABLE public.reviews TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.movies TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.users TO anon, authenticated, service_role;
 
 -- 5. RELOAD SCHEMA CACHE
 NOTIFY pgrst, 'reload schema';
+

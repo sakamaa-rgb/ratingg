@@ -77,6 +77,7 @@ export async function POST(request: Request) {
 
     const newMovie = await createAdminMovie(
       {
+        id: body.id ? Number(body.id) : undefined,
         title: body.title,
         tagline: body.tagline,
         overview: body.overview,

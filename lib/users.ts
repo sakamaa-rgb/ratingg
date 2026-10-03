@@ -172,7 +172,7 @@ export async function registerUser(
       console.warn("Supabase public.users insert notice:", dbErr?.message || dbErr);
     }
 
-    // 2. Also register with Supabase Auth
+    // 2. Also register with Supabase Auth (best-effort, non-blocking)
     try {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
@@ -184,13 +184,11 @@ export async function registerUser(
         if (msg.includes("already registered") || msg.includes("unique") || error.status === 422) {
           return { success: false, error: "Email sudah terdaftar. Silakan login." };
         }
-        if (msg.includes("rate limit")) {
-          return { success: false, error: "Terlalu banyak permintaan. Silakan tunggu 1 menit lalu coba lagi." };
-        }
-        console.warn("Supabase auth signUp notice:", error.message);
+        // Supabase Auth rate limits or email provider errors should NEVER block the user from registering
+        console.warn("Supabase auth signUp warning (bypassed so user can register smoothly):", error.message);
       }
     } catch (err: any) {
-      console.warn("Supabase signup exception, falling back to local:", err);
+      console.warn("Supabase signup exception, falling back to direct persistence:", err);
     }
   }
 

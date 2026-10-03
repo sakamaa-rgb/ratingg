@@ -29,7 +29,10 @@ import {
 
 const SUPABASE_SCHEMA_SQL = `-- =========================================================
 -- RUN THIS SCRIPT IN SUPABASE SQL EDITOR (supabase.com)
+-- TO CONNECT WINDOWS & MOBILE (CROSS-DEVICE SYNC)
 -- =========================================================
+
+-- 1. TABLE: REVIEWS
 CREATE TABLE IF NOT EXISTS public.reviews (
   id TEXT PRIMARY KEY,
   movie_id BIGINT NOT NULL,
@@ -42,6 +45,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- 2. TABLE: MOVIES
 CREATE TABLE IF NOT EXISTS public.movies (
   id BIGINT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -60,25 +64,25 @@ CREATE TABLE IF NOT EXISTS public.movies (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read reviews" ON public.reviews;
-CREATE POLICY "Allow public read reviews" ON public.reviews FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Allow public insert reviews" ON public.reviews;
-CREATE POLICY "Allow public insert reviews" ON public.reviews FOR INSERT WITH CHECK (true);
-DROP POLICY IF EXISTS "Allow public update reviews" ON public.reviews;
-CREATE POLICY "Allow public update reviews" ON public.reviews FOR UPDATE USING (true);
-DROP POLICY IF EXISTS "Allow public delete reviews" ON public.reviews;
-CREATE POLICY "Allow public delete reviews" ON public.reviews FOR DELETE USING (true);
+-- 3. TABLE: USERS
+CREATE TABLE IF NOT EXISTS public.users (
+  email TEXT PRIMARY KEY,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
-ALTER TABLE public.movies ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read movies" ON public.movies;
-CREATE POLICY "Allow public read movies" ON public.movies FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Allow public insert movies" ON public.movies;
-CREATE POLICY "Allow public insert movies" ON public.movies FOR INSERT WITH CHECK (true);
-DROP POLICY IF EXISTS "Allow public update movies" ON public.movies;
-CREATE POLICY "Allow public update movies" ON public.movies FOR UPDATE USING (true);
-DROP POLICY IF EXISTS "Allow public delete movies" ON public.movies;
-CREATE POLICY "Allow public delete movies" ON public.movies FOR DELETE USING (true);`;
+-- 4. NON-RESTRICTIVE ACCESS (Direct Cloud Sync for Web & Mobile)
+ALTER TABLE public.reviews DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.movies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE public.reviews TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.movies TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.users TO anon, authenticated, service_role;
+
+-- 5. RELOAD SCHEMA CACHE
+NOTIFY pgrst, 'reload schema';`;
 
 interface AdminMovie {
   id: number;
