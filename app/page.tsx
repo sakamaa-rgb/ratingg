@@ -1,7 +1,10 @@
 import { getTrendingMovies, getCategorizedMovies } from "@/lib/tmdb";
 import Link from "next/link";
 import Image from "next/image";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import MovieSliderRow from "@/components/MovieSliderRow";
+import DecryptedText from "@/components/animations/DecryptedText";
 import { Star, Play, Film, ArrowRight, X, Flame, PlaySquare, Clock, Trophy } from "lucide-react";
 
 interface HomePageProps {
@@ -9,6 +12,13 @@ interface HomePageProps {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  // Enforce mandatory login: Visitors must log in before accessing the main page
+  const cookieStore = await cookies();
+  const isAuthenticated = cookieStore.get("brutal_dev_session")?.value === "authenticated";
+  if (!isAuthenticated) {
+    redirect("/login");
+  }
+
   const params = await searchParams;
   const category = params?.category;
   const query = params?.q;
@@ -27,9 +37,21 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         <div className="mb-3 max-w-full">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-none">
-            CRITICAL RATINGS.{" "}
+            <DecryptedText
+              text="CRITICAL RATINGS."
+              speed={35}
+              maxIterations={15}
+              className="text-black inline-block"
+              encryptedClassName="text-amber-500 font-mono"
+            />{" "}
             <span className="text-amber-500 bg-black px-2 py-0.5 inline-block">
-              ZERO PIRACY.
+              <DecryptedText
+                text="ZERO PIRACY."
+                speed={40}
+                maxIterations={18}
+                className="text-amber-500 inline-block"
+                encryptedClassName="text-white font-mono"
+              />
             </span>
           </h1>
         </div>

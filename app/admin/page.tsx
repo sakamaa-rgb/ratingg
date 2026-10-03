@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
             <span className="text-[11px] sm:text-xs font-bold uppercase">Katalog Film Aktif</span>
             <Film className="w-4 h-4 text-black" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black">{moviesList.length || 10}</div>
+          <div className="text-2xl sm:text-3xl font-black">{moviesList.length}</div>
           <div className="text-[10px] sm:text-[11px] font-bold text-neutral-600 mt-1">
             TERSEDIA DI REGISTRY
           </div>

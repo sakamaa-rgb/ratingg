@@ -36,23 +36,38 @@ export default function AdminUsersPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch real users from API on load
+  // Persistent deleted users tracking across reloads
   useEffect(() => {
-    fetch("/api/admin/users")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.users && Array.isArray(data.users) && data.users.length > 0) {
-          // Merge real users with INITIAL_USERS to ensure at least 10 entries for demonstration
-          const merged = [...data.users];
-          INITIAL_USERS.forEach((u) => {
-            if (!merged.some((m) => m.email.toLowerCase() === u.email.toLowerCase())) {
-              merged.push(u);
-            }
-          });
-          setUsers(merged);
-        }
-      })
-      .catch(() => {});
+    try {
+      const savedDeleted = localStorage.getItem("brutal_deleted_operator_ids");
+      const deletedSet: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
+
+      fetch("/api/admin/users")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          let pool = [...INITIAL_USERS];
+          if (data?.users && Array.isArray(data.users)) {
+            data.users.forEach((u: AdminUser) => {
+              if (!pool.some((p) => p.email.toLowerCase() === u.email.toLowerCase())) {
+                pool.push(u);
+              }
+            });
+          }
+          // Filter out deleted users persistently!
+          const active = pool.filter(
+            (u) => !deletedSet.includes(u.id) && !deletedSet.includes(u.email.toLowerCase())
+          );
+          setUsers(active);
+        })
+        .catch(() => {
+          const active = INITIAL_USERS.filter(
+            (u) => !deletedSet.includes(u.id) && !deletedSet.includes(u.email.toLowerCase())
+          );
+          setUsers(active);
+        });
+    } catch {
+      // safe fallback
+    }
   }, []);
 
   const filteredUsers = users.filter((u) =>
@@ -78,6 +93,17 @@ export default function AdminUsersPage() {
     }
 
     setDeletingId(id);
+
+    // Save to persistent storage so it stays deleted across reloads
+    try {
+      const savedDeleted = localStorage.getItem("brutal_deleted_operator_ids");
+      const deletedSet: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
+      if (!deletedSet.includes(id)) deletedSet.push(id);
+      if (!deletedSet.includes(email.toLowerCase())) deletedSet.push(email.toLowerCase());
+      localStorage.setItem("brutal_deleted_operator_ids", JSON.stringify(deletedSet));
+    } catch {
+      // safe
+    }
 
     // Call API delete
     try {
