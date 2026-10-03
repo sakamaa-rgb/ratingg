@@ -613,64 +613,41 @@ export default function AdminMoviesPage() {
 
       {/* SUPABASE CLOUD SETUP BANNER */}
       {dbStatus && !dbStatus.moviesTableExists && !dismissDbBanner && (
-        <div className="border-4 border-black bg-brutal-yellow p-4 sm:p-6 shadow-brutal space-y-3 relative">
+        <div className="border-4 border-black bg-brutal-yellow p-4 sm:p-5 shadow-brutal space-y-3 relative">
           <button
             onClick={() => setDismissDbBanner(true)}
             className="absolute top-3 right-3 p-1.5 border-2 border-black bg-white hover:bg-neutral-100 font-black text-xs cursor-pointer shadow-brutal-xs flex items-center gap-1"
             title="Sembunyikan peringatan ini"
           >
             <X className="w-3.5 h-3.5" />
-            <span className="text-[10px] hidden sm:inline">TUTUP</span>
           </button>
 
-          <div className="flex items-center gap-2 pr-16">
-            <AlertTriangle className="w-6 h-6 text-black fill-brutal-yellow stroke-[2.5] shrink-0" />
+          <div className="flex items-center gap-2 pr-10">
+            <AlertTriangle className="w-5 h-5 text-black shrink-0" />
             <span className="bg-black text-white px-2 py-0.5 text-xs font-black uppercase tracking-wider">
-              DATABASE SUPABASE MEMERLUKAN SETUP TABEL (WAJIB)
+              DATABASE BELUM SETUP — FILM TIDAK TERSINKRON KE MOBILE
             </span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-black leading-relaxed">
-            Tabel <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.movies</code> belum dibuat di project Supabase kamu (<span className="underline">bmrkqohudimwhiuovxtg</span>).
-            <br />
-            Tanpa tabel ini di Supabase, film baru tidak dapat tersimpan secara permanen di cloud dan akan hilang ketika halaman di-refresh.
+
+          <p className="text-xs font-bold text-black">
+            Tabel database di Supabase belum dibuat. Film yang ditambahkan hanya tersimpan di browser lokal dan tidak muncul di HP atau perangkat lain.
           </p>
-          <div className="bg-white border-2 border-black p-3 text-xs font-mono space-y-1.5">
-            <p className="font-black text-black uppercase">CARA AKTIFKAN DATABASE DALAM 1 MENIT:</p>
-            <ol className="list-decimal list-inside space-y-1 text-neutral-800 font-bold">
-              <li>Klik tombol <strong>COPY SQL SCRIPT</strong> di bawah.</li>
-              <li>Klik tombol <strong>BUKA SUPABASE SQL EDITOR</strong>.</li>
-              <li>Paste (Ctrl+V) ke SQL Editor Supabase lalu klik tombol hijau <strong>RUN</strong>.</li>
-            </ol>
-          </div>
+
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
-                setCopiedSql(true);
-                showToast("SQL BERHASIL DI-COPY KE CLIPBOARD!");
-                setTimeout(() => setCopiedSql(false), 3000);
-              }}
-              className="px-3.5 sm:px-4 py-2 border-2 border-black bg-black text-white font-black text-xs uppercase hover:bg-neutral-800 shadow-brutal-sm flex items-center gap-2 cursor-pointer"
-            >
-              {copiedSql ? <CheckCircle className="w-4 h-4 text-brutal-green" /> : <Copy className="w-4 h-4" />}
-              <span>{copiedSql ? "SQL TERSALIN!" : "COPY SQL SCRIPT"}</span>
-            </button>
             <a
-              href="https://supabase.com/dashboard/project/bmrkqohudimwhiuovxtg/sql/new"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 sm:px-4 py-2 border-2 border-black bg-white text-black font-black text-xs uppercase hover:bg-neutral-100 shadow-brutal-sm flex items-center gap-2"
+              href="/admin/setup"
+              className="px-4 py-2.5 border-2 border-black bg-black text-white font-black text-xs uppercase hover:bg-neutral-800 shadow-brutal-sm flex items-center gap-2"
             >
-              <span>BUKA SUPABASE SQL EDITOR</span>
-              <ExternalLink className="w-4 h-4" />
+              <Lock className="w-4 h-4" />
+              <span>SETUP DATABASE SEKARANG</span>
             </a>
             <button
               onClick={handleRecheckDb}
               disabled={checkingDb}
-              className="px-3.5 sm:px-4 py-2 border-2 border-black bg-white text-black font-black text-xs uppercase hover:bg-neutral-100 shadow-brutal-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 border-2 border-black bg-white text-black font-black text-xs uppercase hover:bg-neutral-100 shadow-brutal-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${checkingDb ? "animate-spin" : ""}`} />
-              <span>{checkingDb ? "MENGECEK..." : "CEK STATUS SEKARANG"}</span>
+              <span>{checkingDb ? "MENGECEK..." : "CEK ULANG"}</span>
             </button>
           </div>
         </div>
