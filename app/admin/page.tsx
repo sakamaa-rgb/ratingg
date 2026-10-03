@@ -419,7 +419,7 @@ export default function AdminDashboardPage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm font-bold text-black leading-relaxed">
-            Tabel <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.movies</code> & <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.reviews</code> belum dibuat di project Supabase kamu (<span className="underline">bmrkqohudimwhiuovxtg</span>).
+            Tabel <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.movies</code> & <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.reviews</code> belum dibuat di project Supabase kamu (<span className="underline">djblyzmsyajkqowzjfdt</span>).
             <br />
             Tanpa tabel ini di Supabase, film dan ulasan baru tidak dapat tersimpan secara permanen di cloud dan akan hilang ketika halaman di-refresh.
           </p>
@@ -445,7 +445,7 @@ export default function AdminDashboardPage() {
               <span>{copiedSql ? "SQL TERSALIN!" : "COPY SQL SCRIPT"}</span>
             </button>
             <a
-              href="https://supabase.com/dashboard/project/bmrkqohudimwhiuovxtg/sql/new"
+              href="https://supabase.com/dashboard/project/djblyzmsyajkqowzjfdt/sql/new"
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 sm:px-4 py-2 border-2 border-black bg-white text-black font-black text-xs uppercase hover:bg-neutral-100 shadow-brutal-sm flex items-center gap-2"

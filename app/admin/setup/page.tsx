@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader2, Database, Key, ArrowRight, Copy, ExternalLink, AlertTriangle } from "lucide-react";
 
-const PROJECT_REF = "bmrkqohudimwhiuovxtg";
+const PROJECT_REF = "djblyzmsyajkqowzjfdt";
 
 const SQL_SCRIPT = `-- JALANKAN DI SUPABASE SQL EDITOR
 -- https://supabase.com/dashboard/project/${PROJECT_REF}/sql/new
