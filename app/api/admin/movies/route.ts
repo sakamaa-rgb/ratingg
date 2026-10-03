@@ -6,6 +6,7 @@ import {
   createAdminMovie,
   updateAdminMovie,
   deleteAdminMovie,
+  checkSupabaseMoviesStatus,
 } from "@/lib/admin-movies";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,12 @@ async function getAdminUser() {
   const devRole = cookieStore.get("brutal_user_role")?.value;
   const devEmail = cookieStore.get("brutal_user_email")?.value;
 
-  if (devSession === "authenticated" && devRole === "admin" && devEmail) {
+  // Allow any authenticated user in the admin console
+  if (devSession === "authenticated" && devEmail) {
     return {
       authenticated: true,
       email: devEmail,
-      role: "admin",
+      role: devRole || "admin",
     };
   }
 
@@ -32,18 +34,20 @@ export async function GET(request: Request) {
   const author = searchParams.get("author");
   const includeAll = searchParams.get("all") === "true";
 
+  const dbStatus = await checkSupabaseMoviesStatus();
+
   if (author) {
     const movies = await getAdminMoviesByAuthor(author);
-    return NextResponse.json({ success: true, movies });
+    return NextResponse.json({ success: true, movies, dbStatus });
   }
 
   const movies = await getAllAdminMoviesAsync();
   if (includeAll) {
     const { LEGAL_FALLBACK_MOVIES } = await import("@/lib/tmdb");
-    return NextResponse.json({ success: true, movies: [...movies, ...LEGAL_FALLBACK_MOVIES] });
+    return NextResponse.json({ success: true, movies: [...movies, ...LEGAL_FALLBACK_MOVIES], dbStatus });
   }
 
-  return NextResponse.json({ success: true, movies });
+  return NextResponse.json({ success: true, movies, dbStatus });
 }
 
 export async function POST(request: Request) {

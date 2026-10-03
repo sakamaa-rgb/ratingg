@@ -85,6 +85,52 @@ export function extractYoutubeId(input?: string): string {
   return trimmed;
 }
 
+export async function checkSupabaseMoviesStatus(): Promise<{
+  connected: boolean;
+  moviesTableExists: boolean;
+  reviewsTableExists: boolean;
+  error?: string;
+}> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return {
+      connected: false,
+      moviesTableExists: false,
+      reviewsTableExists: false,
+      error: "Supabase credentials tidak ditemukan di env.",
+    };
+  }
+
+  let moviesTableExists = false;
+  let reviewsTableExists = false;
+  let lastError: string | undefined;
+
+  try {
+    const { error: mErr } = await supabase.from("movies").select("id").limit(1);
+    if (!mErr) {
+      moviesTableExists = true;
+    } else {
+      lastError = mErr.message;
+    }
+  } catch (err: any) {
+    lastError = err?.message;
+  }
+
+  try {
+    const { error: rErr } = await supabase.from("reviews").select("id").limit(1);
+    if (!rErr) {
+      reviewsTableExists = true;
+    }
+  } catch {}
+
+  return {
+    connected: true,
+    moviesTableExists,
+    reviewsTableExists,
+    error: lastError,
+  };
+}
+
 export async function getAllAdminMoviesAsync(): Promise<AdminMovie[]> {
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -185,7 +231,7 @@ export async function createAdminMovie(
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
-      await supabase.from("movies").insert([
+      const { error: insertError } = await supabase.from("movies").insert([
         {
           id: newMovie.id,
           title: newMovie.title,
@@ -204,8 +250,22 @@ export async function createAdminMovie(
           created_at: newMovie.created_at,
         },
       ]);
-    } catch (err) {
-      console.warn("Supabase movie insert failed, saving locally:", err);
+
+      if (insertError) {
+        console.error("Supabase movie insert failed:", insertError);
+        if (
+          insertError.message.includes("does not exist") ||
+          insertError.message.includes("schema cache")
+        ) {
+          throw new Error(
+            `Tabel "public.movies" belum dibuat di database Supabase. Jalankan script SQL di Supabase SQL Editor agar film tersimpan permanen.`
+          );
+        }
+        throw new Error(`Database error: ${insertError.message}`);
+      }
+    } catch (err: any) {
+      console.warn("Supabase movie insert exception:", err);
+      throw err;
     }
   }
 
@@ -229,7 +289,12 @@ export async function updateAdminMovie(
   }
 
   const movie = all[index];
+  const isSuperAdmin =
+    adminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
+    adminEmail.toLowerCase() === (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+
   if (
+    !isSuperAdmin &&
     movie.created_by &&
     movie.created_by.toLowerCase() !== adminEmail.toLowerCase()
   ) {
@@ -297,7 +362,12 @@ export async function deleteAdminMovie(
   }
 
   const movie = all[index];
+  const isSuperAdmin =
+    adminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
+    adminEmail.toLowerCase() === (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+
   if (
+    !isSuperAdmin &&
     movie.created_by &&
     movie.created_by.toLowerCase() !== adminEmail.toLowerCase()
   ) {

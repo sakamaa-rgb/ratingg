@@ -21,7 +21,62 @@ import {
   Plus,
   RefreshCw,
   Layers,
+  Copy,
+  CheckCircle,
 } from "lucide-react";
+
+const SUPABASE_SCHEMA_SQL = `-- =========================================================
+-- RUN THIS SCRIPT IN SUPABASE SQL EDITOR (supabase.com)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id TEXT PRIMARY KEY,
+  movie_id BIGINT NOT NULL,
+  movie_title TEXT NOT NULL,
+  movie_poster TEXT,
+  author TEXT NOT NULL,
+  rating NUMERIC NOT NULL DEFAULT 5,
+  comment TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'approved',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.movies (
+  id BIGINT PRIMARY KEY,
+  title TEXT NOT NULL,
+  tagline TEXT,
+  overview TEXT NOT NULL,
+  poster_path TEXT NOT NULL,
+  backdrop_path TEXT,
+  release_date TEXT,
+  vote_average NUMERIC DEFAULT 0,
+  vote_count INTEGER DEFAULT 0,
+  category TEXT DEFAULT 'popular',
+  runtime INTEGER DEFAULT 120,
+  genres JSONB DEFAULT '[]'::jsonb,
+  youtube_video_id TEXT,
+  created_by TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read reviews" ON public.reviews;
+CREATE POLICY "Allow public read reviews" ON public.reviews FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert reviews" ON public.reviews;
+CREATE POLICY "Allow public insert reviews" ON public.reviews FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public update reviews" ON public.reviews;
+CREATE POLICY "Allow public update reviews" ON public.reviews FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow public delete reviews" ON public.reviews;
+CREATE POLICY "Allow public delete reviews" ON public.reviews FOR DELETE USING (true);
+
+ALTER TABLE public.movies ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read movies" ON public.movies;
+CREATE POLICY "Allow public read movies" ON public.movies FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public insert movies" ON public.movies;
+CREATE POLICY "Allow public insert movies" ON public.movies FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public update movies" ON public.movies;
+CREATE POLICY "Allow public update movies" ON public.movies FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow public delete movies" ON public.movies;
+CREATE POLICY "Allow public delete movies" ON public.movies FOR DELETE USING (true);`;
 
 export interface AdminReview {
   id: string;
@@ -48,6 +103,13 @@ export default function AdminDashboardPage() {
   const [moviesList, setMoviesList] = useState<MovieOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [dbStatus, setDbStatus] = useState<{
+    connected: boolean;
+    moviesTableExists: boolean;
+    reviewsTableExists: boolean;
+    error?: string;
+  } | null>(null);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   // Filters
   const [selectedFilmFilter, setSelectedFilmFilter] = useState<string>("ALL");
@@ -92,6 +154,9 @@ export default function AdminDashboardPage() {
       const res = await fetch("/api/admin/movies?all=true");
       if (res.ok) {
         const data = await res.json();
+        if (data.dbStatus) {
+          setDbStatus(data.dbStatus);
+        }
         if (data.movies && data.movies.length > 0) {
           setMoviesList(data.movies);
           setNewReviewForm((prev) => ({
@@ -310,6 +375,54 @@ export default function AdminDashboardPage() {
           <button onClick={() => setFeedback(null)} className="cursor-pointer font-black">
             [X]
           </button>
+        </div>
+      )}
+
+      {/* SUPABASE CLOUD SETUP BANNER */}
+      {dbStatus && !dbStatus.moviesTableExists && (
+        <div className="border-4 border-black bg-brutal-yellow p-4 sm:p-6 shadow-brutal space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-black fill-brutal-yellow stroke-[2.5] shrink-0" />
+            <span className="bg-black text-white px-2 py-0.5 text-xs font-black uppercase tracking-wider">
+              DATABASE SUPABASE MEMERLUKAN SETUP TABEL (WAJIB)
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-black leading-relaxed">
+            Tabel <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.movies</code> & <code className="bg-white px-1.5 py-0.5 border border-black font-black">public.reviews</code> belum dibuat di project Supabase kamu (<span className="underline">bmrkqohudimwhiuovxtg</span>).
+            <br />
+            Tanpa tabel ini di Supabase, film dan ulasan baru tidak dapat tersimpan secara permanen di cloud dan akan hilang ketika halaman di-refresh.
+          </p>
+          <div className="bg-white border-2 border-black p-3 text-xs font-mono space-y-1.5">
+            <p className="font-black text-black uppercase">CARA AKTIFKAN DATABASE DALAM 1 MENIT:</p>
+            <ol className="list-decimal list-inside space-y-1 text-neutral-800 font-bold">
+              <li>Klik tombol <strong>COPY SQL SCRIPT</strong> di bawah.</li>
+              <li>Klik tombol <strong>BUKA SUPABASE SQL EDITOR</strong>.</li>
+              <li>Paste (Ctrl+V) ke SQL Editor Supabase lalu klik tombol hijau <strong>RUN</strong>.</li>
+            </ol>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
+                setCopiedSql(true);
+                showToast("SQL BERHASIL DI-COPY KE CLIPBOARD!");
+                setTimeout(() => setCopiedSql(false), 3000);
+              }}
+              className="px-4 py-2 border-2 border-black bg-black text-white font-black text-xs uppercase hover:bg-neutral-800 shadow-brutal-sm flex items-center gap-2 cursor-pointer"
+            >
+              {copiedSql ? <CheckCircle className="w-4 h-4 text-brutal-green" /> : <Copy className="w-4 h-4" />}
+              <span>{copiedSql ? "SQL TERSALIN!" : "COPY SQL SCRIPT"}</span>
+            </button>
+            <a
+              href="https://supabase.com/dashboard/project/bmrkqohudimwhiuovxtg/sql/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 border-2 border-black bg-white text-black font-black text-xs uppercase hover:bg-neutral-100 shadow-brutal-sm flex items-center gap-2"
+            >
+              <span>BUKA SUPABASE SQL EDITOR</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       )}
 

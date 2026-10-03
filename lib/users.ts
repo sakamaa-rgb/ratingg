@@ -86,9 +86,15 @@ export async function validateLogin(
       });
 
       if (!error && data.user) {
+        const userEmail = data.user.email || email;
+        const isAdmin =
+          userEmail.toLowerCase().includes("admin") ||
+          userEmail.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
+          userEmail.toLowerCase().trim() === adminEmail.toLowerCase().trim();
+
         return {
-          email: data.user.email || email,
-          role: "user",
+          email: userEmail,
+          role: isAdmin ? "admin" : "user",
           createdAt: data.user.created_at || new Date().toISOString(),
         };
       }
@@ -106,7 +112,16 @@ export async function validateLogin(
   );
 
   if (localMatch) {
-    return localMatch;
+    const isAdmin =
+      localMatch.email.toLowerCase().includes("admin") ||
+      localMatch.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
+      localMatch.email.toLowerCase().trim() === adminEmail.toLowerCase().trim() ||
+      localMatch.role === "admin";
+
+    return {
+      ...localMatch,
+      role: isAdmin ? "admin" : "user",
+    };
   }
 
   return null;
