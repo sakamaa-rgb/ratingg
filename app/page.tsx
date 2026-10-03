@@ -7,6 +7,8 @@ import MovieSliderRow from "@/components/MovieSliderRow";
 import DecryptedText from "@/components/animations/DecryptedText";
 import { Star, Play, Film, ArrowRight, X, Flame, PlaySquare, Clock, Trophy } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface HomePageProps {
   searchParams: Promise<{ category?: string; q?: string }>;
 }

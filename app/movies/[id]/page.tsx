@@ -2,7 +2,8 @@ import { getMovieDetails } from "@/lib/tmdb";
 import { extractYoutubeId } from "@/lib/admin-movies";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import MovieReviewsSection from "@/components/MovieReviewsSection";
 import {
   ArrowLeft,
@@ -11,18 +12,26 @@ import {
   Play,
   ShieldCheck,
   Star,
-  Clapperboard,
   Film,
   Video,
   User,
   Sparkles,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface MoviePageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function MovieDetailPage({ params }: MoviePageProps) {
+  // Enforce mandatory login
+  const cookieStore = await cookies();
+  const isAuthenticated = cookieStore.get("brutal_dev_session")?.value === "authenticated";
+  if (!isAuthenticated) {
+    redirect("/login");
+  }
+
   const { id } = await params;
   const movie = await getMovieDetails(id);
 
