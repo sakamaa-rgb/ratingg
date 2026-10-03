@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAllUsers } from "@/lib/users";
+import { getAllUsers, deleteStoredUser } from "@/lib/users";
 import { createClient } from "@supabase/supabase-js";
 import { getSanitizedSupabaseUrl, getSanitizedSupabaseKey } from "@/utils/supabase/url";
 
@@ -54,6 +54,8 @@ export async function DELETE(request: Request) {
       { status: 400 }
     );
   }
+
+  deleteStoredUser(email);
 
   return NextResponse.json({ success: true, deletedEmail: email });
 }

@@ -212,7 +212,7 @@ export default function Navbar() {
 
                 {/* BRUTALIST DROPDOWN MENU */}
                 {filmDropdownOpen && (
-                  <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 border-4 border-black bg-white shadow-brutal-lg z-50 font-mono text-xs">
+                  <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] border-4 border-black bg-white shadow-brutal-lg z-50 font-mono text-xs">
                     <div className="bg-black text-white px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase">
                       SELECT REGISTRY FILTER
                     </div>

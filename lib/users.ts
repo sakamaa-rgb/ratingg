@@ -180,3 +180,24 @@ export async function registerUser(
 
   return { success: true };
 }
+
+export function deleteStoredUser(email: string): boolean {
+  const cleanEmail = email.toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
+  if (cleanEmail === adminEmail) return false;
+
+  inMemoryUsers = inMemoryUsers.filter((u) => u.email.toLowerCase() !== cleanEmail);
+
+  try {
+    ensureDataDir();
+    if (fs.existsSync(USERS_FILE)) {
+      const raw = fs.readFileSync(USERS_FILE, "utf-8");
+      const diskUsers = JSON.parse(raw) as StoredUser[];
+      const filtered = diskUsers.filter((u) => u.email.toLowerCase() !== cleanEmail);
+      fs.writeFileSync(USERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+    }
+  } catch {
+    // Safe for serverless
+  }
+  return true;
+}
