@@ -10,7 +10,7 @@ export async function GET() {
   if (devSession === "authenticated" && devEmail) {
     const cleanEmail = devEmail.toLowerCase().trim();
     const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
-    const isStrictAdmin = cleanEmail === "rajibjugi02@gmail.com" || cleanEmail === adminEmail;
+    const isStrictAdmin = cleanEmail === adminEmail;
     return NextResponse.json({
       authenticated: true,
       email: devEmail,

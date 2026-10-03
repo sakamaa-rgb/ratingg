@@ -90,9 +90,7 @@ export async function validateLogin(
         .maybeSingle();
 
       if (!dbErr && dbUser) {
-        const isAdmin =
-          dbUser.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-          dbUser.email.toLowerCase().trim() === adminEmail;
+        const isAdmin = dbUser.email.toLowerCase().trim() === adminEmail;
 
         return {
           email: dbUser.email,
@@ -113,9 +111,7 @@ export async function validateLogin(
 
       if (!error && data.user) {
         const userEmail = (data.user.email || cleanEmail).toLowerCase().trim();
-        const isAdmin =
-          userEmail === "rajibjugi02@gmail.com" ||
-          userEmail === adminEmail;
+        const isAdmin = userEmail === adminEmail;
 
         return {
           email: userEmail,
@@ -138,9 +134,7 @@ export async function validateLogin(
 
   if (localMatch) {
     const userEmail = localMatch.email.toLowerCase().trim();
-    const isAdmin =
-      userEmail === "rajibjugi02@gmail.com" ||
-      userEmail === adminEmail;
+    const isAdmin = userEmail === adminEmail;
 
     return {
       ...localMatch,

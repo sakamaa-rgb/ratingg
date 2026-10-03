@@ -30,9 +30,7 @@ export async function updateSession(request: NextRequest) {
 
     const userEmail = request.cookies.get("brutal_user_email")?.value?.toLowerCase().trim() || "";
     const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
-    const isAdmin =
-      userEmail === "rajibjugi02@gmail.com" ||
-      userEmail === adminEmail;
+    const isAdmin = userEmail === adminEmail;
 
     if (!isAdmin) {
       const url = request.nextUrl.clone();

@@ -49,7 +49,7 @@ export default function Navbar() {
       const cachedRole = localRole || getCookie("brutal_user_role");
       if (cachedEmail) {
         const clean = cachedEmail.toLowerCase().trim();
-        const isStrictAdmin = clean === "rajibjugi02@gmail.com" || clean === "adminflix123@gmail.com";
+        const isStrictAdmin = clean === "adminflix123@gmail.com";
         setIsAuthenticated(true);
         setUserEmail(cachedEmail);
         setUserRole(isStrictAdmin ? "admin" : "user");

@@ -291,7 +291,6 @@ export async function updateAdminMovie(
 
   const movie = all[index];
   const isSuperAdmin =
-    adminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
     adminEmail.toLowerCase() === (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
 
   if (
@@ -364,7 +363,6 @@ export async function deleteAdminMovie(
 
   const movie = all[index];
   const isSuperAdmin =
-    adminEmail.toLowerCase() === "rajibjugi02@gmail.com" ||
     adminEmail.toLowerCase() === (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
 
   if (

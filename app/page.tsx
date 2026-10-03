@@ -24,9 +24,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const userEmail = cookieStore.get("brutal_user_email")?.value?.toLowerCase().trim() || "";
   const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase().trim();
-  const isAdmin =
-    userEmail === "rajibjugi02@gmail.com" ||
-    userEmail === adminEmail;
+  const isAdmin = userEmail === adminEmail;
 
   const params = await searchParams;
   const category = params?.category;
