@@ -139,6 +139,7 @@ export default function MovieSliderRow({
                       fill
                       className="object-cover group-hover/card:scale-105 transition-transform duration-300"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                      unoptimized={movie.poster_path?.startsWith("data:") || movie.poster_path?.startsWith("/uploads/")}
                     />
 
                     {/* TMDB RATING OVERLAY */}

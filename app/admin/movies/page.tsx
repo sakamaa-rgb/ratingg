@@ -181,7 +181,44 @@ export default function AdminMoviesPage() {
     setIsModalOpen(true);
   };
 
-  // Pure file upload handler
+  // Client-side image compressor for instant, 100% reliable upload without server disk limits
+  const compressImageFile = (
+    file: File,
+    maxWidth: number = 800,
+    quality: number = 0.85
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/webp", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  // Pure file upload handler (Cloud & Serverless Ready)
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cover" | "backdrop" | "video"
@@ -189,48 +226,66 @@ export default function AdminMoviesPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Guard maximum file size (200MB limit)
-    if (file.size > 200 * 1024 * 1024) {
-      showToast("Ukuran file terlalu besar (maksimal 200MB).", "error");
-      e.target.value = "";
+    // Handle Cover & Backdrop: Client-side compressed WebP Data URL (instant, no EROFS error!)
+    if (type === "cover" || type === "backdrop") {
+      if (type === "cover") setUploadingCover(true);
+      else setUploadingBackdrop(true);
+
+      try {
+        const maxWidth = type === "cover" ? 800 : 1280;
+        const compressedUrl = await compressImageFile(file, maxWidth, 0.85);
+
+        if (type === "cover") {
+          setFormData((prev) => ({ ...prev, poster_path: compressedUrl }));
+          showToast("Cover Poster siap digunakan!");
+        } else {
+          setFormData((prev) => ({ ...prev, backdrop_path: compressedUrl }));
+          showToast("Background Backdrop siap digunakan!");
+        }
+      } catch {
+        showToast("Gagal memproses gambar. Coba gunakan gambar JPG/PNG lain.", "error");
+      } finally {
+        e.target.value = "";
+        if (type === "cover") setUploadingCover(false);
+        else setUploadingBackdrop(false);
+      }
       return;
     }
 
-    const data = new FormData();
-    data.append("file", file);
-    data.append("type", type);
+    // Handle Video Upload
+    if (type === "video") {
+      if (file.size > 15 * 1024 * 1024) {
+        showToast(
+          "File video terlalu besar (>15MB). Masukkan link YouTube di kolom input atas agar video lancar diputar di semua HP & laptop.",
+          "error"
+        );
+        e.target.value = "";
+        return;
+      }
 
-    if (type === "cover") setUploadingCover(true);
-    else if (type === "backdrop") setUploadingBackdrop(true);
-    else if (type === "video") setUploadingVideo(true);
+      setUploadingVideo(true);
+      try {
+        const data = new FormData();
+        data.append("file", file);
+        data.append("type", "video");
 
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: data,
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        if (type === "cover") {
-          setFormData((prev) => ({ ...prev, poster_path: result.url }));
-          showToast("Cover PNG berhasil di-upload!");
-        } else if (type === "backdrop") {
-          setFormData((prev) => ({ ...prev, backdrop_path: result.url }));
-          showToast("Background PNG berhasil di-upload!");
-        } else if (type === "video") {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: data,
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
           setFormData((prev) => ({ ...prev, youtube_video_id: result.url }));
           showToast("Video MP4 berhasil di-upload!");
+        } else {
+          showToast(result.error || "Gagal mengunggah video.", "error");
         }
-      } else {
-        showToast(result.error || "Gagal mengunggah file.", "error");
+      } catch (err: any) {
+        showToast(err.message || "Gagal mengunggah video.", "error");
+      } finally {
+        e.target.value = "";
+        setUploadingVideo(false);
       }
-    } catch (err: any) {
-      showToast(err.message || "Kesalahan jaringan saat upload.", "error");
-    } finally {
-      e.target.value = "";
-      if (type === "cover") setUploadingCover(false);
-      else if (type === "backdrop") setUploadingBackdrop(false);
-      else if (type === "video") setUploadingVideo(false);
     }
   };
 
@@ -525,6 +580,7 @@ export default function AdminMoviesPage() {
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 400px"
+                      unoptimized={movie.poster_path?.startsWith("data:") || movie.poster_path?.startsWith("/uploads/")}
                     />
                     <div className="absolute top-2 left-2 bg-black text-white border-2 border-white px-2 py-0.5 text-[10px] font-black uppercase">
                       {movie.category?.toUpperCase() || "POPULAR"}
@@ -822,7 +878,7 @@ export default function AdminMoviesPage() {
                           alt="Cover Thumbnail"
                           fill
                           sizes="40px"
-                          unoptimized={formData.poster_path.startsWith("/uploads/")}
+                          unoptimized={formData.poster_path.startsWith("data:") || formData.poster_path.startsWith("/uploads/")}
                           className="object-cover"
                         />
                       </div>
@@ -892,7 +948,7 @@ export default function AdminMoviesPage() {
                           alt="Backdrop Thumbnail"
                           fill
                           sizes="64px"
-                          unoptimized={formData.backdrop_path.startsWith("/uploads/")}
+                          unoptimized={formData.backdrop_path.startsWith("data:") || formData.backdrop_path.startsWith("/uploads/")}
                           className="object-cover"
                         />
                       </div>

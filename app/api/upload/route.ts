@@ -18,36 +18,47 @@ export async function POST(request: Request) {
     if (type === "video") subfolder = "videos";
     else if (type === "backdrop") subfolder = "backdrops";
 
-    // Determine upload directory inside public
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", subfolder);
-    await fs.mkdir(uploadsDir, { recursive: true });
-
-    // Generate safe unique filename
     const timestamp = Date.now();
     const sanitizedName = file.name
       .replace(/[^a-zA-Z0-9.-]/g, "_")
       .toLowerCase();
     const fileName = `${timestamp}_${sanitizedName}`;
-    const filePath = path.join(uploadsDir, fileName);
 
-    // Write file to disk
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    await fs.writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/${subfolder}/${fileName}`;
+    // Try saving to disk (works on localhost / local server)
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads", subfolder);
+      await fs.mkdir(uploadsDir, { recursive: true });
+      const filePath = path.join(uploadsDir, fileName);
+      await fs.writeFile(filePath, buffer);
 
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      fileName,
-      size: file.size,
-      mimeType: file.type,
-    });
+      return NextResponse.json({
+        success: true,
+        url: `/uploads/${subfolder}/${fileName}`,
+        fileName,
+        size: file.size,
+        mimeType: file.type,
+      });
+    } catch {
+      // Serverless (Vercel) Read-Only Fallback: Convert to Base64 Data URL so upload NEVER crashes
+      const base64 = buffer.toString("base64");
+      const mime = file.type || (type === "video" ? "video/mp4" : "image/jpeg");
+      const dataUrl = `data:${mime};base64,${base64}`;
+
+      return NextResponse.json({
+        success: true,
+        url: dataUrl,
+        fileName,
+        size: file.size,
+        mimeType: file.type,
+      });
+    }
   } catch (err: any) {
     console.error("Upload handler error:", err);
     return NextResponse.json(
-      { error: err.message || "Failed to save uploaded file." },
+      { error: err.message || "Gagal mengunggah file." },
       { status: 500 }
     );
   }
