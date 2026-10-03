@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import MovieSliderRow from "@/components/MovieSliderRow";
 import { Star, Play, Film, ArrowRight, X, Flame, PlaySquare, Clock, Trophy } from "lucide-react";
-import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; q?: string }>;
@@ -18,13 +17,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const categorized = await getCategorizedMovies();
   const searchResults = query || category ? await getTrendingMovies({ category, query }) : null;
 
-  const typewriterWords = [
-    { text: "CRITICAL" },
-    { text: "RATINGS." },
-    { text: "ZERO" },
-    { text: "PIRACY.", className: "text-amber-500" },
-  ];
-
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-8 sm:space-y-12 font-mono">
       {/* NEO-BRUTALIST HERO BANNER */}
@@ -33,12 +25,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           AUTHORIZED FILM ARCHIVE
         </div>
 
-        <div className="mb-2 max-w-full overflow-hidden">
-          <TypewriterEffectSmooth
-            words={typewriterWords}
-            className="my-0"
-            cursorClassName="bg-black w-[4px] sm:w-[5px]"
-          />
+        <div className="mb-3 max-w-full">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-none">
+            CRITICAL RATINGS.{" "}
+            <span className="text-amber-500 bg-black px-2 py-0.5 inline-block">
+              ZERO PIRACY.
+            </span>
+          </h1>
         </div>
 
         <p className="font-sans text-xs sm:text-lg text-neutral-800 mt-2 sm:mt-4 max-w-2xl leading-relaxed font-medium">
