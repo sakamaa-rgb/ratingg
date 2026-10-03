@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { registerUser } from "@/lib/users";
 
 export async function POST(request: Request) {
@@ -28,5 +29,35 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ success: true });
+  const cleanEmail = email.toLowerCase().trim();
+  const cookieStore = await cookies();
+
+  // 1. Auto-login immediately upon successful registration
+  cookieStore.set("brutal_dev_session", "authenticated", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+  });
+
+  cookieStore.set("brutal_user_role", "user", {
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  cookieStore.set("brutal_user_email", cleanEmail, {
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  return NextResponse.json({
+    success: true,
+    email: cleanEmail,
+    role: "user",
+    autoLoggedIn: true,
+  });
 }

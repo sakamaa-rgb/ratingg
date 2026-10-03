@@ -42,10 +42,12 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setSuccessMsg("REGISTRASI BERHASIL! Mengalihkan ke halaman login...");
+        localStorage.setItem("brutal_user_email", email.toLowerCase().trim());
+        localStorage.setItem("brutal_user_role", "user");
+        setSuccessMsg("REGISTRASI BERHASIL! Anda otomatis login, mengalihkan ke beranda...");
         setTimeout(() => {
-          window.location.href = `/login?registered=true&email=${encodeURIComponent(email)}`;
-        }, 1200);
+          window.location.href = "/";
+        }, 1000);
       } else {
         setErrorMsg(data.error || "Gagal mendaftar. Coba lagi.");
         setLoading(false);

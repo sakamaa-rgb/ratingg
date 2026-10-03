@@ -1,11 +1,30 @@
-import { getMovieDetails } from "@/lib/tmdb";
-import { extractYoutubeId } from "@/lib/admin-movies";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { Movie } from "@/lib/tmdb";
 import MovieReviewsSection from "@/components/MovieReviewsSection";
-import ClientMovieDetailFallback from "@/components/ClientMovieDetailFallback";
+
+function extractYoutubeId(input?: string): string {
+  if (!input) return "Way9Dexny3w";
+  const trimmed = input.trim();
+  if (
+    trimmed.includes(".mp4") ||
+    trimmed.includes(".webm") ||
+    trimmed.startsWith("/uploads/") ||
+    trimmed.startsWith("data:")
+  ) {
+    return trimmed;
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+  );
+  if (match && match[1]) {
+    return match[1];
+  }
+  return trimmed;
+}
 import {
   ArrowLeft,
   Calendar,
@@ -17,27 +36,71 @@ import {
   Video,
   User,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-
-interface MoviePageProps {
-  params: Promise<{ id: string }>;
+interface ClientMovieDetailFallbackProps {
+  id: string;
 }
 
-export default async function MovieDetailPage({ params }: MoviePageProps) {
-  // Enforce mandatory login
-  const cookieStore = await cookies();
-  const isAuthenticated = cookieStore.get("brutal_dev_session")?.value === "authenticated";
-  if (!isAuthenticated) {
-    redirect("/login");
+export default function ClientMovieDetailFallback({ id }: ClientMovieDetailFallbackProps) {
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const numericId = Number(id);
+    try {
+      const stored = localStorage.getItem("brutal_admin_movies");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const found = parsed.find((m: any) => m.id === numericId);
+          if (found) {
+            setMovie(found);
+
+            // Rehydrate server cache in the background
+            fetch("/api/admin/movies", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(found),
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch {}
+    setLoading(false);
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center font-mono">
+        <div className="p-10 border-4 border-black bg-white shadow-brutal inline-block animate-pulse">
+          <p className="font-bold text-sm uppercase">MEMUAT DETAIL FILM...</p>
+        </div>
+      </div>
+    );
   }
 
-  const { id } = await params;
-  const movie = await getMovieDetails(id);
-
   if (!movie) {
-    return <ClientMovieDetailFallback id={id} />;
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center font-mono">
+        <div className="p-10 sm:p-14 border-4 border-black bg-white shadow-brutal space-y-4">
+          <AlertTriangle className="w-12 h-12 text-brutal-yellow mx-auto" />
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">FILM TIDAK DITEMUKAN</h2>
+          <p className="text-xs sm:text-sm text-neutral-600 max-w-md mx-auto">
+            Film dengan ID #{id} tidak ditemukan di database. Pastikan tabel di Supabase sudah aktif atau tambahkan film kembali dari Admin Console.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="inline-block px-5 py-2.5 border-2 border-black bg-black text-white font-black text-xs uppercase shadow-brutal-sm hover:bg-neutral-800"
+            >
+              KEMBALI KE KATALOG
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const videoSource = extractYoutubeId(movie.youtube_video_id);
@@ -82,7 +145,7 @@ export default async function MovieDetailPage({ params }: MoviePageProps) {
                 fill
                 priority
                 className="object-cover"
-                unoptimized={movie.poster_path?.startsWith("/uploads/")}
+                unoptimized={movie.poster_path?.startsWith("/uploads/") || movie.poster_path?.startsWith("data:")}
                 sizes="(max-width: 768px) 100vw, 400px"
               />
               <div className="absolute top-2 left-2 bg-black text-white border border-white px-2 py-0.5 text-[10px] font-black uppercase">
@@ -107,7 +170,7 @@ export default async function MovieDetailPage({ params }: MoviePageProps) {
                   TOTAL SUARA
                 </div>
                 <div className="text-xl font-black text-black mt-0.5">
-                  {movie.vote_count.toLocaleString()}
+                  {(movie.vote_count || 1).toLocaleString()}
                 </div>
               </div>
             </div>

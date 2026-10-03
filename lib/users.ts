@@ -61,12 +61,13 @@ export async function validateLogin(
   email: string,
   password: string
 ): Promise<StoredUser | null> {
-  const adminEmail = process.env.ADMIN_EMAIL || "adminflix123@gmail.com";
+  const cleanEmail = email.toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_EMAIL || "adminflix123@gmail.com").toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || "adminflix123";
 
   // 1. Direct Admin Credential Check
   if (
-    email.toLowerCase().trim() === adminEmail.toLowerCase().trim() &&
+    cleanEmail === adminEmail &&
     password === adminPassword
   ) {
     return {
@@ -76,21 +77,48 @@ export async function validateLogin(
     };
   }
 
-  // 2. Supabase Auth Check (Cross-device cloud sync: Windows & Mobile)
+  // 2. Database & Supabase Check
   const supabase = getSupabaseClient();
   if (supabase) {
+    // 2A. Check custom public.users table (Bypasses email confirmation requirement)
+    try {
+      const { data: dbUser, error: dbErr } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", cleanEmail)
+        .eq("password", password)
+        .maybeSingle();
+
+      if (!dbErr && dbUser) {
+        const isAdmin =
+          dbUser.email.toLowerCase().includes("admin") ||
+          dbUser.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
+          dbUser.email.toLowerCase().trim() === adminEmail ||
+          dbUser.role === "admin";
+
+        return {
+          email: dbUser.email,
+          role: isAdmin ? "admin" : "user",
+          createdAt: dbUser.created_at || new Date().toISOString(),
+        };
+      }
+    } catch (err) {
+      console.warn("Supabase public.users login check error:", err);
+    }
+
+    // 2B. Supabase Auth Check (Cross-device cloud sync: Windows & Mobile)
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: cleanEmail,
         password,
       });
 
       if (!error && data.user) {
-        const userEmail = data.user.email || email;
+        const userEmail = data.user.email || cleanEmail;
         const isAdmin =
           userEmail.toLowerCase().includes("admin") ||
           userEmail.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-          userEmail.toLowerCase().trim() === adminEmail.toLowerCase().trim();
+          userEmail.toLowerCase().trim() === adminEmail;
 
         return {
           email: userEmail,
@@ -107,7 +135,7 @@ export async function validateLogin(
   const users = getAllUsers();
   const localMatch = users.find(
     (u) =>
-      u.email.toLowerCase() === email.toLowerCase().trim() &&
+      u.email.toLowerCase() === cleanEmail &&
       u.password === password
   );
 
@@ -115,7 +143,7 @@ export async function validateLogin(
     const isAdmin =
       localMatch.email.toLowerCase().includes("admin") ||
       localMatch.email.toLowerCase().trim() === "rajibjugi02@gmail.com" ||
-      localMatch.email.toLowerCase().trim() === adminEmail.toLowerCase().trim() ||
+      localMatch.email.toLowerCase().trim() === adminEmail ||
       localMatch.role === "admin";
 
     return {
@@ -138,9 +166,23 @@ export async function registerUser(
     return { success: false, error: "Email ini terdaftar sebagai Admin." };
   }
 
-  // 1. Register with Supabase Cloud Auth (Available immediately across Windows & Mobile)
   const supabase = getSupabaseClient();
   if (supabase) {
+    // 1. Sync to public.users table in Supabase (immediate, permanent cross-device sync)
+    try {
+      await supabase.from("users").upsert([
+        {
+          email: cleanEmail,
+          password,
+          role: "user",
+          created_at: new Date().toISOString(),
+        },
+      ]);
+    } catch (dbErr: any) {
+      console.warn("Supabase public.users insert notice:", dbErr?.message || dbErr);
+    }
+
+    // 2. Also register with Supabase Auth
     try {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
@@ -155,22 +197,14 @@ export async function registerUser(
         if (msg.includes("rate limit")) {
           return { success: false, error: "Terlalu banyak permintaan. Silakan tunggu 1 menit lalu coba lagi." };
         }
-        console.warn("Supabase auth signUp error, falling back to local registration:", error.message);
-      } else if (data.user) {
-        const newUser: StoredUser = {
-          email: cleanEmail,
-          role: "user",
-          createdAt: new Date().toISOString(),
-        };
-        inMemoryUsers.push(newUser);
-        return { success: true };
+        console.warn("Supabase auth signUp notice:", error.message);
       }
     } catch (err: any) {
       console.warn("Supabase signup exception, falling back to local:", err);
     }
   }
 
-  // 2. In-memory / local fallback
+  // 3. In-memory / local fallback
   const existing = getAllUsers().find((u) => u.email.toLowerCase() === cleanEmail);
   if (existing) {
     return { success: false, error: "Email sudah terdaftar. Silakan login." };
