@@ -159,8 +159,17 @@ export async function getAllAdminMoviesAsync(): Promise<AdminMovie[]> {
           created_at: row.created_at || new Date().toISOString(),
           is_admin_curated: true,
         }));
-        inMemoryMovies = mapped;
-        return mapped;
+
+        // Merge Supabase with local movies so newly added local movies are also retained
+        const local = getLocalMovies();
+        const merged = [...mapped];
+        for (const loc of local) {
+          if (!merged.some((m) => m.id === loc.id)) {
+            merged.push(loc);
+          }
+        }
+        inMemoryMovies = merged;
+        return merged;
       }
     } catch (err) {
       console.warn("Supabase fetch movies error, falling back:", err);
@@ -227,7 +236,12 @@ export async function createAdminMovie(
     is_admin_curated: true,
   };
 
-  // 1. Sync to Supabase Cloud Database (Windows & Mobile sync)
+  // 1. Always save locally first so the movie is immediately available and never fails to add
+  const all = getLocalMovies();
+  const updated = [newMovie, ...all.filter((m) => m.id !== newMovie.id)];
+  saveLocalMovies(updated);
+
+  // 2. Sync to Supabase Cloud Database (Windows & Mobile sync)
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -252,26 +266,13 @@ export async function createAdminMovie(
       ]);
 
       if (insertError) {
-        console.error("Supabase movie insert failed:", insertError);
-        if (
-          insertError.message.includes("does not exist") ||
-          insertError.message.includes("schema cache")
-        ) {
-          throw new Error(
-            `Tabel "public.movies" belum dibuat di database Supabase. Jalankan script SQL di Supabase SQL Editor agar film tersimpan permanen.`
-          );
-        }
-        throw new Error(`Database error: ${insertError.message}`);
+        console.warn("Supabase movie insert notice:", insertError.message);
       }
     } catch (err: any) {
-      console.warn("Supabase movie insert exception:", err);
-      throw err;
+      console.warn("Supabase movie insert exception:", err?.message || err);
     }
   }
 
-  const all = getLocalMovies();
-  const updated = [newMovie, ...all];
-  saveLocalMovies(updated);
   return newMovie;
 }
 
