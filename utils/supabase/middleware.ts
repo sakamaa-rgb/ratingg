@@ -3,11 +3,23 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isAuthCallback = pathname.startsWith("/auth");
+  const isApiRoute = pathname.startsWith("/api");
   const isAdminPage = pathname.startsWith("/admin");
   const isAuthenticated = request.cookies.get("brutal_dev_session")?.value === "authenticated";
   const userRole = request.cookies.get("brutal_user_role")?.value;
 
-  // Protect admin routes: only authenticated users (preferably admin role) can access
+  // 1. Mandatory Login Gate: Unauthenticated users are redirected to /login first
+  if (!isAuthenticated && !isAuthPage && !isAuthCallback && !isApiRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    if (pathname !== "/") {
+      url.searchParams.set("redirectedFrom", pathname);
+    }
+    return NextResponse.redirect(url);
+  }
+
+  // 2. Protect admin routes: only authenticated users can access
   if (isAdminPage) {
     if (!isAuthenticated) {
       const url = request.nextUrl.clone();
@@ -17,7 +29,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // If already authenticated and trying to visit login/register, redirect to appropriate page
+  // 3. If already authenticated and trying to visit login/register, redirect to destination
   if (isAuthenticated && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = userRole === "admin" ? "/admin" : "/";

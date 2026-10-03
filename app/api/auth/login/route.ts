@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = validateLogin(email, password);
+  const user = await validateLogin(email, password);
 
   if (!user) {
     return NextResponse.json(

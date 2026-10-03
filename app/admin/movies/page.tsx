@@ -931,18 +931,46 @@ export default function AdminMoviesPage() {
                 )}
               </div>
 
-              {/* PURE FILE UPLOAD: 3. VIDEO TRAILER (MP4) */}
-              <div className="border-2 border-black p-3.5 bg-neutral-50 space-y-2">
+              {/* VIDEO TRAILER: YOUTUBE LINK OR MP4 FILE */}
+              <div className="border-2 border-black p-3.5 bg-neutral-50 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-black uppercase text-xs">
                     <Video className="w-4 h-4 text-red-600" />
-                    <span>Upload Video Trailer (Format MP4)</span>
+                    <span>Trailer Video (YouTube Link / MP4)</span>
                   </div>
                   {formData.youtube_video_id && (
                     <span className="text-[10px] font-bold text-green-700 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> MP4 SIAP
+                      <CheckCircle className="w-3.5 h-3.5" /> VIDEO SIAP
                     </span>
                   )}
+                </div>
+
+                {/* Direct Link Input (Rekomendasi untuk cross-device & online hosting) */}
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-700 uppercase mb-1">
+                    Link YouTube / Video URL (Rekomendasi Lintas Device):
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: https://www.youtube.com/watch?v=... atau ID YouTube"
+                    value={formData.youtube_video_id}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        youtube_video_id: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border-2 border-black text-xs font-mono focus:bg-yellow-50 outline-none"
+                  />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Bisa masukkan link YouTube lengkap, ID YouTube, atau link MP4 online agar video lancar diputar di Windows & Mobile.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="h-[1px] bg-neutral-300 flex-1"></div>
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase">ATAU UPLOAD MP4 LOKAL</span>
+                  <div className="h-[1px] bg-neutral-300 flex-1"></div>
                 </div>
 
                 <input
@@ -953,45 +981,15 @@ export default function AdminMoviesPage() {
                   className="hidden"
                 />
 
-                {formData.youtube_video_id ? (
-                  <div className="p-2.5 bg-white border-2 border-black space-y-2">
-                    <div className="relative aspect-video max-h-40 w-full bg-black border border-black overflow-hidden">
-                      <video
-                        controls
-                        playsInline
-                        className="w-full h-full object-contain"
-                        src={formData.youtube_video_id}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] font-bold text-neutral-600 truncate max-w-[200px]">
-                        File: {formData.youtube_video_id.split("/").pop()}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => videoInputRef.current?.click()}
-                        disabled={uploadingVideo}
-                        className="px-3 py-1.5 border border-black bg-brutal-yellow hover:bg-yellow-400 font-bold uppercase text-[10px] cursor-pointer shadow-brutal-sm"
-                      >
-                        {uploadingVideo ? "Mengunggah..." : "Ganti Video MP4"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => videoInputRef.current?.click()}
-                    className="border-2 border-dashed border-black p-4 text-center bg-white hover:bg-red-50 cursor-pointer transition-colors"
-                  >
-                    <Video className="w-6 h-6 mx-auto mb-1 text-red-600" />
-                    <p className="font-black uppercase text-xs">
-                      {uploadingVideo ? "SEDANG MENGUNGGAH MP4..." : "+ KLIK UNTUK UPLOAD TRAILER VIDEO (MP4)"}
-                    </p>
-                    <p className="text-[10px] text-neutral-500 mt-0.5">
-                      Pilih file video .mp4 langsung dari komputer / HP Anda
-                    </p>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={uploadingVideo}
+                  className="w-full py-2 border-2 border-dashed border-black bg-white hover:bg-neutral-100 font-bold uppercase text-[11px] cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Video className="w-3.5 h-3.5 text-neutral-700" />
+                  <span>{uploadingVideo ? "Sedang Mengunggah File..." : "Upload File MP4 Dari Komputer / HP"}</span>
+                </button>
               </div>
 
               {/* OVERVIEW / SYNOPSIS */}

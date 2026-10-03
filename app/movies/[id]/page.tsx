@@ -1,4 +1,5 @@
 import { getMovieDetails } from "@/lib/tmdb";
+import { extractYoutubeId } from "@/lib/admin-movies";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -29,9 +30,12 @@ export default async function MovieDetailPage({ params }: MoviePageProps) {
     notFound();
   }
 
+  const videoSource = extractYoutubeId(movie.youtube_video_id);
   const isMp4 =
-    movie.youtube_video_id?.includes(".mp4") ||
-    movie.youtube_video_id?.startsWith("/uploads/");
+    videoSource?.includes(".mp4") ||
+    videoSource?.includes(".webm") ||
+    videoSource?.startsWith("/uploads/") ||
+    videoSource?.startsWith("blob:");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10 font-mono">
@@ -198,19 +202,19 @@ export default async function MovieDetailPage({ params }: MoviePageProps) {
 
           {/* THEATER SCREEN */}
           <div className="relative aspect-video w-full bg-black">
-            {movie.youtube_video_id ? (
+            {videoSource ? (
               isMp4 ? (
                 <video
                   controls
                   playsInline
                   className="w-full h-full object-contain bg-black"
-                  src={movie.youtube_video_id}
+                  src={videoSource}
                 >
                   Browser Anda tidak mendukung tag video HTML5.
                 </video>
               ) : (
                 <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${movie.youtube_video_id}?rel=0&modestbranding=1`}
+                  src={`https://www.youtube-nocookie.com/embed/${videoSource}?rel=0&modestbranding=1`}
                   title={`${movie.title} Official Trailer`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen

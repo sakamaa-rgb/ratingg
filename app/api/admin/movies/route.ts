@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  getAllAdminMovies,
+  getAllAdminMoviesAsync,
   getAdminMoviesByAuthor,
   createAdminMovie,
   updateAdminMovie,
   deleteAdminMovie,
 } from "@/lib/admin-movies";
+
+export const dynamic = "force-dynamic";
 
 async function getAdminUser() {
   const cookieStore = await cookies();
@@ -31,11 +33,11 @@ export async function GET(request: Request) {
   const includeAll = searchParams.get("all") === "true";
 
   if (author) {
-    const movies = getAdminMoviesByAuthor(author);
+    const movies = await getAdminMoviesByAuthor(author);
     return NextResponse.json({ success: true, movies });
   }
 
-  const movies = getAllAdminMovies();
+  const movies = await getAllAdminMoviesAsync();
   if (includeAll) {
     const { LEGAL_FALLBACK_MOVIES } = await import("@/lib/tmdb");
     return NextResponse.json({ success: true, movies: [...movies, ...LEGAL_FALLBACK_MOVIES] });
@@ -62,7 +64,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newMovie = createAdminMovie(
+    const newMovie = await createAdminMovie(
       {
         title: body.title,
         tagline: body.tagline,
@@ -107,7 +109,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const result = updateAdminMovie(body.id, body, admin.email);
+    const result = await updateAdminMovie(body.id, body, admin.email);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -140,7 +142,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const result = deleteAdminMovie(id, admin.email);
+  const result = await deleteAdminMovie(id, admin.email);
   if (!result.success) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }

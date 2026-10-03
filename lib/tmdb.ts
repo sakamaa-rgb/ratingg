@@ -1,4 +1,4 @@
-import { getAllAdminMovies, getAdminMovieById } from "./admin-movies";
+import { getAllAdminMoviesAsync, getAdminMovieById } from "./admin-movies";
 
 export interface Movie {
   id: number;
@@ -28,7 +28,7 @@ export async function getTrendingMovies(filter?: { category?: string; query?: st
   const query = filter?.query?.toLowerCase().trim();
   const apiKey = process.env.TMDB_API_KEY;
 
-  const adminMovies = getAllAdminMovies();
+  const adminMovies = await getAllAdminMoviesAsync();
   let results: Movie[] = [...adminMovies, ...LEGAL_FALLBACK_MOVIES];
 
   if (apiKey && apiKey !== "your_tmdb_api_key_here") {
@@ -89,7 +89,7 @@ export async function getCategorizedMovies(): Promise<{
   topRated: Movie[];
   upcoming: Movie[];
 }> {
-  const adminMovies = getAllAdminMovies();
+  const adminMovies = await getAllAdminMoviesAsync();
   const all = [...adminMovies, ...LEGAL_FALLBACK_MOVIES];
 
   return {
@@ -102,7 +102,7 @@ export async function getCategorizedMovies(): Promise<{
 
 export async function getMovieDetails(id: number | string): Promise<Movie | null> {
   const numericId = Number(id);
-  const adminMovie = getAdminMovieById(numericId);
+  const adminMovie = await getAdminMovieById(numericId);
   if (adminMovie) {
     return adminMovie;
   }

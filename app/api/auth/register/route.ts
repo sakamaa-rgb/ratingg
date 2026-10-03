@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = registerUser(email, password);
+  const result = await registerUser(email, password);
 
   if (!result.success) {
     return NextResponse.json(

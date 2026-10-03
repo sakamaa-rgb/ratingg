@@ -7,16 +7,18 @@ import {
   deleteReview,
 } from "@/lib/reviews";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const movieId = searchParams.get("movieId");
 
   if (movieId) {
-    const reviews = getReviewsByMovieId(movieId);
+    const reviews = await getReviewsByMovieId(movieId);
     return NextResponse.json({ success: true, reviews });
   }
 
-  const reviews = getAllReviews();
+  const reviews = await getAllReviews();
   return NextResponse.json({ success: true, reviews });
 }
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newReview = createReview({
+    const newReview = await createReview({
       movieId: Number(body.movieId),
       movieTitle: body.movieTitle,
       moviePoster: body.moviePoster,
@@ -60,7 +62,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const updated = updateReviewStatus(body.id, body.status);
+    const updated = await updateReviewStatus(body.id, body.status);
     if (!updated) {
       return NextResponse.json({ error: "Review not found." }, { status: 404 });
     }
@@ -85,7 +87,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const deleted = deleteReview(id);
+  const deleted = await deleteReview(id);
   if (!deleted) {
     return NextResponse.json({ error: "Review not found." }, { status: 404 });
   }
