@@ -4,14 +4,15 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-const SUPABASE_PROJECT_REF = "bmrkqohudimwhiuovxtg";
+const SUPABASE_PROJECT_REF = "djblyzmsyajkqowzjfdt";
 const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcmtxb2h1ZGltd2hpdW92eHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5ODI5NjcsImV4cCI6MjEwNjU1ODk2N30.aGO4wgNmVddd477C15grBYjAgUuxKZVQtQySbdFctPE";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqYmx5em1zeWFqa3Fvd3pqZmR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTg2ODUsImV4cCI6MjEwNjU3NDY4NX0.4GAdjE2KigymvwM5SKOM1AukoQR5m0Pbz-rxM3F41k8";
 
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqYmx5em1zeWFqa3Fvd3pqZmR0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDk5ODY4NSwiZXhwIjoyMTA2NTc0Njg1fQ.-YpgOLrKJunoVo990wOZOfbgSOp3sL5sZ2fotKLWRIM";
 
 // SQL statements split into individual atomic statements
 const SETUP_STATEMENTS = [
