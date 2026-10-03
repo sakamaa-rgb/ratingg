@@ -77,10 +77,10 @@ export async function getMovieDetails(id: number | string): Promise<Movie | null
   if (fallback) return fallback;
 
   // Fallback lookup from TMDB if not in admin movies (e.g. for legacy links)
-  const apiKey = process.env.TMDB_API_KEY;
-  if (!apiKey || apiKey === "your_tmdb_api_key_here") {
-    return null;
-  }
+  const apiKey =
+    process.env.TMDB_API_KEY && process.env.TMDB_API_KEY !== "your_tmdb_api_key_here"
+      ? process.env.TMDB_API_KEY
+      : "685a682af688605535a346fcdae01573";
 
   try {
     const [movieRes, videosRes] = await Promise.all([

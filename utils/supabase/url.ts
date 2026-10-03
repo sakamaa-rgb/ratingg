@@ -1,3 +1,7 @@
+const DEFAULT_SUPABASE_URL = "https://bmrkqohudimwhiuovxtg.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtcmtxb2h1ZGltd2hpdW92eHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5ODI5NjcsImV4cCI6MjEwNjU1ODk2N30.aGO4wgNmVddd477C15grBYjAgUuxKZVQtQySbdFctPE";
+
 export function getSanitizedSupabaseUrl(): string {
   let url = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   // Strip quotes if user pasted with quotes
@@ -15,10 +19,20 @@ export function getSanitizedSupabaseUrl(): string {
   // Strip all trailing slashes
   url = url.replace(/\/+$/, "");
 
-  return url || "https://placeholder-project.supabase.co";
+  if (!url || url.includes("placeholder")) {
+    return DEFAULT_SUPABASE_URL;
+  }
+
+  return url;
 }
 
 export function getSanitizedSupabaseKey(): string {
   let key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
-  return key.replace(/^["']|["']$/g, "") || "placeholder-anon-key";
+  key = key.replace(/^["']|["']$/g, "");
+
+  if (!key || key.includes("placeholder") || key === "placeholder-anon-key") {
+    return DEFAULT_SUPABASE_ANON_KEY;
+  }
+
+  return key;
 }
