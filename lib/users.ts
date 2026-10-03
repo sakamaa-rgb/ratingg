@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
+import { getSanitizedSupabaseUrl, getSanitizedSupabaseKey } from "@/utils/supabase/url";
 
 export interface StoredUser {
   email: string;
@@ -15,8 +16,8 @@ const USERS_FILE = path.join(process.cwd(), "data", "users.json");
 let inMemoryUsers: StoredUser[] = [];
 
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSanitizedSupabaseUrl();
+  const key = getSanitizedSupabaseKey();
   if (!url || !key || url.includes("placeholder-project")) {
     return null;
   }
@@ -132,16 +133,15 @@ export async function registerUser(
       });
 
       if (error) {
-        if (
-          error.message.includes("already registered") ||
-          error.message.includes("unique")
-        ) {
-          return { success: false, error: "Email sudah terdaftar." };
+        const msg = error.message.toLowerCase();
+        if (msg.includes("already registered") || msg.includes("unique") || error.status === 422) {
+          return { success: false, error: "Email sudah terdaftar. Silakan login." };
         }
-        return { success: false, error: error.message };
-      }
-
-      if (data.user) {
+        if (msg.includes("rate limit")) {
+          return { success: false, error: "Terlalu banyak permintaan. Silakan tunggu 1 menit lalu coba lagi." };
+        }
+        console.warn("Supabase auth signUp error, falling back to local registration:", error.message);
+      } else if (data.user) {
         const newUser: StoredUser = {
           email: cleanEmail,
           role: "user",
@@ -151,14 +151,14 @@ export async function registerUser(
         return { success: true };
       }
     } catch (err: any) {
-      console.warn("Supabase signup exception:", err);
+      console.warn("Supabase signup exception, falling back to local:", err);
     }
   }
 
   // 2. In-memory / local fallback
   const existing = getAllUsers().find((u) => u.email.toLowerCase() === cleanEmail);
   if (existing) {
-    return { success: false, error: "Email sudah terdaftar." };
+    return { success: false, error: "Email sudah terdaftar. Silakan login." };
   }
 
   const newUser: StoredUser = {

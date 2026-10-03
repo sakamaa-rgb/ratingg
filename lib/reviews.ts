@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
+import { getSanitizedSupabaseUrl, getSanitizedSupabaseKey } from "@/utils/supabase/url";
 
 export interface Review {
   id: string;
@@ -20,8 +21,8 @@ const DATA_FILE = path.join(DATA_DIR, "reviews.json");
 let inMemoryReviews: Review[] = [];
 
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSanitizedSupabaseUrl();
+  const key = getSanitizedSupabaseKey();
   if (!url || !key || url.includes("placeholder-project")) {
     return null;
   }

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Movie } from "./tmdb";
 import { createClient } from "@supabase/supabase-js";
+import { getSanitizedSupabaseUrl, getSanitizedSupabaseKey } from "@/utils/supabase/url";
 
 export interface AdminMovie extends Movie {
   created_by: string;
@@ -15,8 +16,8 @@ const DATA_FILE = path.join(DATA_DIR, "admin-movies.json");
 let inMemoryMovies: AdminMovie[] = [];
 
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSanitizedSupabaseUrl();
+  const key = getSanitizedSupabaseKey();
   if (!url || !key || url.includes("placeholder-project")) {
     return null;
   }
